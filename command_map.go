@@ -1,18 +1,40 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-
-	"github.com/JoshuaSE-git/pokedex/internal"
 )
 
-func commandMap(locationUrls *internal.LocationUrls) error {
-	locations, err := internal.GetLocations(locationUrls.Next)
+func commandMapf(cfg *config) error {
+	locations, err := cfg.pokeapiClient.ListLocations(cfg.nextPageURL)
 	if err != nil {
 		return err
 	}
 
-	for _, location := range locations {
+	cfg.nextPageURL = locations.Next
+	cfg.previousPageURL = locations.Previous
+
+	for _, location := range locations.Results {
+		fmt.Println(location.Name)
+	}
+
+	return nil
+}
+
+func commandMapb(cfg *config) error {
+	if cfg.previousPageURL == nil {
+		return errors.New("you're on the first page")
+	}
+
+	locations, err := cfg.pokeapiClient.ListLocations(cfg.previousPageURL)
+	if err != nil {
+		return err
+	}
+
+	cfg.nextPageURL = locations.Next
+	cfg.previousPageURL = locations.Previous
+
+	for _, location := range locations.Results {
 		fmt.Println(location.Name)
 	}
 

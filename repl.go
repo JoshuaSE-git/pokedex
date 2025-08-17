@@ -6,13 +6,18 @@ import (
 	"os"
 	"strings"
 
-	"github.com/JoshuaSE-git/pokedex/internal"
+	"github.com/JoshuaSE-git/pokedex/internal/pokeapi"
 )
 
 const (
-	replPrompt  string = "Pokedex > "
-	startingURL string = "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
+	replPrompt string = "Pokedex > "
 )
+
+type config struct {
+	nextPageURL     *string
+	previousPageURL *string
+	pokeapiClient   pokeapi.Client
+}
 
 func cleanInput(text string) []string {
 	lowerCaseInput := strings.ToLower(text)
@@ -21,11 +26,7 @@ func cleanInput(text string) []string {
 	return splitInput
 }
 
-func startRepl() {
-	locationUrls := internal.LocationUrls{
-		Previous: "",
-		Next:     startingURL,
-	}
+func startRepl(cfg *config) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print(replPrompt)
@@ -43,23 +44,9 @@ func startRepl() {
 			continue
 		}
 
-		err := command.callback(&locationUrls)
+		err := command.callback(cfg)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
-		}
-
-		if command.name == "map" {
-			locationUrls, err = internal.GetNextLocationPage(locationUrls.Next)
-			if err != nil {
-				fmt.Printf("Error: %v\n", err)
-			}
-		}
-
-		if command.name == "mapb" && len(locationUrls.Previous) > 0 {
-			locationUrls, err = internal.GetNextLocationPage(locationUrls.Previous)
-			if err != nil {
-				fmt.Printf("Error: %v\n", err)
-			}
 		}
 	}
 }
@@ -67,7 +54,7 @@ func startRepl() {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*internal.LocationUrls) error
+	callback    func(*config) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -85,7 +72,7 @@ func getCommands() map[string]cliCommand {
 		"map": {
 			name:        "map",
 			description: "Display the next 20 locations",
-			callback:    commandMap,
+			callback:    commandMapf,
 		},
 		"mapb": {
 			name:        "mapb",

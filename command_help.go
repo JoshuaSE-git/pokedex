@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/JoshuaSE-git/pokedex/internal"
 )
 
-func commandHelp(locationUrls *internal.LocationUrls) error {
+func commandHelp(cfg *config) error {
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")

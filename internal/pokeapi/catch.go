@@ -14,7 +14,7 @@ func (c *Client) Catch(name string) (Pokemon, error) {
 
 		err := json.Unmarshal(pokemonData, &pokemon)
 		if err != nil {
-			return Pokemon{}, nil
+			return Pokemon{}, err
 		}
 
 		return pokemon, nil
@@ -22,27 +22,27 @@ func (c *Client) Catch(name string) (Pokemon, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return Pokemon{}, nil
+		return Pokemon{}, err
 	}
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return Pokemon{}, nil
+		return Pokemon{}, err
 	}
 	defer res.Body.Close()
 
 	pokemonData, err := io.ReadAll(res.Body)
 	if err != nil {
-		return Pokemon{}, nil
+		return Pokemon{}, err
 	}
 
 	pokemon := Pokemon{}
 	err = json.Unmarshal(pokemonData, &pokemon)
 	if err != nil {
-		return Pokemon{}, nil
+		return Pokemon{}, err
 	}
 
 	c.cache.Add(name, pokemonData)
 
-	return Pokemon{}, nil
+	return pokemon, nil
 }
